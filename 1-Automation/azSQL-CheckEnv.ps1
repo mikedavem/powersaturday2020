@@ -6,77 +6,6 @@ param
 )
 $ErrorActionPreference = "stop"
 $WarningPreference = "SilentlyContinue"
-
-Function Invoke-LSSendEmail{
-<#
-    .SYNOPSIS
-        To send email from Azure Automation
-
-    .DESCRIPTION
-        Email will be sent from O356 in direct mode
-
-    .PARAMETER SmtpServer
-        SMTP Server
-
-    .PARAMETER Port
-        SMTP Port
-
-    .PARAMETER UseSSL
-        Switch to SSL mode
-
-    .PARAMETER From
-        Email sender (must be an email address that doesn't exist or doesn't
-        belong to any O365 account)
-
-    .PARAMETER To
-        Recipient(s)
-
-    .PARAMETER Subject
-        Subject email
-
-    .PARAMETER Body
-        Body email
-#>
-    Param(
-        [Parameter(Mandatory=$true)]
-        [String]$SmtpServer
-        ,
-        [Parameter(Mandatory=$true)]
-        [Int]$Port
-        ,
-        [Parameter(Mandatory=$False)]
-        [Boolean]$UseSSL=$true
-        ,
-        [Parameter(Mandatory=$true)]
-        [String]$From
-        ,
-        [Parameter(Mandatory=$true)]
-        [String[]]$To
-        ,
-        [Parameter(Mandatory=$true)]
-        [String]$Subject
-        ,
-        [Parameter(Mandatory=$true)]
-        [String]$Body
-    )
-
-    ## Define the Send-MailMessage parameters
-    $mailParams = @{
-        SmtpServer                 = $SmtpServer
-        Port                       = $Port
-        UseSSL                     = $UseSSL
-        #Credential                 = $credential => With direct send no need to use credential
-        From                       = $From
-        To                         = $To
-        Subject                    = $Subject
-        Body                       = $Body
-        DeliveryNotificationOption = 'OnFailure', 'OnSuccess'
-    }
-
-    ## Send the message
-    Send-MailMessage @mailParams -BodyAsHtml
-}
-
 Function AzureAutomation{
     # Connect to the right subscription
     $AzureAutomationConnectionName = "AzureRunAsConnection"
@@ -99,9 +28,9 @@ Function GetAzCompliantDBs {
     $Compliant_databases = @()
 
     Switch ($Env){
-        'PROD' { $Compliant_databases = @('LeShop_DWH','Logistic_DM', 'SSISDB')              }
-        'ACC'  { $Compliant_databases = @('LeShop_DWH','Logistic_DM', 'SSISDB') }
-        'INT'  { $Compliant_databases = @('LeShop_DWH','Logistic_DM', 'SSISDB') }
+        'PROD' { $Compliant_databases = @('PowerSaturday')              }
+        'ACC'  { $Compliant_databases = @('PowerSaturday') }
+        'INT'  { $Compliant_databases = @('PowerSaturday') }
     }
 
     $Compliant_databases
