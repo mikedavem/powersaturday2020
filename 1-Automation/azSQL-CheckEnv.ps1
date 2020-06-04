@@ -77,14 +77,14 @@ Function CheckAzSQLServerFirewall{
         $ServerName
     )
 
-    $Compliant_rules = @('LeShopPublicEcu', 'LeShopPublicDC', 'AllowAllWindowsAzureIps')
+    $Compliant_rules = @('Home', 'AllowAllWindowsAzureIps')
     $Check = ''
 
     Select-AzSubscription -SubscriptionName $SubId | Out-Null
 
     Get-AzSqlServerFirewallRule -ResourceGroupName $ResourceGroupName -ServerName $ServerName | ForEach-Object {
         If ($_.FirewallRuleName -notin $Compliant_rules){
-            $Check += "Server Firewall rule should only contains LeShop DC Ips - Found  $($_.FirewallRuleName) - [$($_.StartIpAddress) - $($_.EndIpAddress)] `n"
+            $Check += "Server Firewall rule should only contains Ips - Found  $($_.FirewallRuleName) - [$($_.StartIpAddress) - $($_.EndIpAddress)] `n"
         }
     }
 
@@ -904,7 +904,7 @@ else {
 
     If ($check){
         $Subject = "$ResourceName - Incompliant items found"
-        $body = $check -replace "`n", '<br />'
+        $body = $check
     }
 
     Write-Output $Subject
