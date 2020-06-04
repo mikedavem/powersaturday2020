@@ -22,6 +22,8 @@
         [String]$Action
 )
 
+$WarningPreference = "SilentlyContinue"
+
 # Choose the corresponding keyvault
 switch ($EnvTarget) {
     "PROD" { $KeyvaultName = "azkv01p"}
@@ -210,14 +212,10 @@ ORDER BY  schema_table_name
         [String]$Subject = "AzSql-MaintenanceDB - Env: $EnvTarget - Server: $SqlInstance - DB: $Database OK"
         [String]$Body = "AzSql-MaintenanceDB completed sucessfully for the task(s): $debugMsg"
 
-        Invoke-LSSendEmail `
-            -SmtpServer $smtpserver `
-            -Port 25 `
-            -UseSSL $True `
-            -From 'azure.automation@leshop.ch' `
-            -To 'DL_SQLAdmins@leshop.ch','DL_ECU_IT_DATA@leshop.ch' `
-            -Subject $Subject `
-            -Body $Body
+        Write-Output $Subject
+        Write-Output $Body
+
+        # Email
     }
 }
 Catch {
@@ -226,5 +224,7 @@ Catch {
 
     Write-Output $Subject
     Write-Output $Body
+
+    # Email
 }
 
