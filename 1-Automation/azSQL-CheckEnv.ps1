@@ -223,18 +223,29 @@ Function CheckAzSQLServerAudit{
                 -ResourceGroupName $ResourceGroupName `
                 -ServerName $serverName
 
-    If (($Audit.LogAnalyticsTargetState -ne $Compliant_audit_state) -and ($Audit.EventHubTargetState -and $Compliant_audit_state) -and ($Audit.BlobStorageTargetState -ne $Compliant_audit_state)){
-        $check += "Server audit for Server $serverName should be $Compliant_audit_state - Found Disabled `n"
-    }
+    If ($Audit){
 
-    If ($Audit.WorkspaceResourceId -ne $omsId){
-        $AuditWorkspaceResourceIdShort = "../$($Audit.WorkspaceResourceId.Split('/')[2])/../$($Audit.WorkspaceResourceId.Split('/')[4])/../../../$($Audit.WorkspaceResourceId.Split('/')[8])"
-        $omsIdShort = "../$($omsId.Split('/')[2])/../$($omsId.Split('/')[4])/../../../$($omsId.Split('/')[8])"
-        $check += "Server audit target for Server $serverName should be $omsIdShort - Found $AuditWorkspaceResourceIdShort `n"
-    }
+        If (($Audit.LogAnalyticsTargetState -ne $Compliant_audit_state) -and ($Audit.EventHubTargetState -and $Compliant_audit_state) -and ($Audit.BlobStorageTargetState -ne $Compliant_audit_state)){
+            $check += "Server audit for Server $serverName should be $Compliant_audit_state - Found Disabled `n"
+        }
 
-    If (Compare-Object -ReferenceObject $audit.AuditActionGroup -DifferenceObject $Compliant_audit_events){
-        $check += "Server audit action group for Server $serverName should contains only $Compliant_audit_events - Found $($Audit.AuditActionGroup) `n"
+        IF ([String]::IsNullOrEmpty($Audit.WorkspaceResourceId)){
+            $check += "Server audit target for Server $serverName should be $omsIdShort - Found empty value `n"
+        }
+        Else{
+            If ($Audit.WorkspaceResourceId -ne $omsId){
+                $AuditWorkspaceResourceIdShort = "../$($Audit.WorkspaceResourceId.Split('/')[2])/../$($Audit.WorkspaceResourceId.Split('/')[4])/../../../$($Audit.WorkspaceResourceId.Split('/')[8])"
+                $omsIdShort = "../$($omsId.Split('/')[2])/../$($omsId.Split('/')[4])/../../../$($omsId.Split('/')[8])"
+                $check += "Server audit target for Server $serverName should be $omsIdShort - Found $AuditWorkspaceResourceIdShort `n"
+            }
+        }
+
+        If (Compare-Object -ReferenceObject $audit.AuditActionGroup -DifferenceObject $Compliant_audit_events){
+            $check += "Server audit action group for Server $serverName should contains only $Compliant_audit_events - Found $($Audit.AuditActionGroup) `n"
+        }
+    }
+    Else {
+        $Check += "Server audit for Server $serverName should be enabled"
     }
 
     $Check
@@ -317,7 +328,7 @@ Function CheckAzSQLServer{
     }
 
     # Check SQL Server AAD admin
-    $Check = CheckAzSQLServerAdmin `
+    $Check += CheckAzSQLServerAdmin `
                 -SubId $SubId `
                 -ResourceGroupName $ResourceGroupName `
                 -ServerName $ServerName `
@@ -328,7 +339,7 @@ Function CheckAzSQLServer{
     }
 
     # Check Data Security State
-    $check = CheckAzSQLServerADS `
+    $check += CheckAzSQLServerADS `
                 -SubId $SubId `
                 -ResourceGroupName $ResourceGroupName `
                 -ServerName $serverName
@@ -338,7 +349,7 @@ Function CheckAzSQLServer{
     }
 
     # Check Advanced Threat State
-    $check = CheckAzSQLServerAdvancedThreat `
+    $check += CheckAzSQLServerAdvancedThreat `
                 -SubId $SubId `
                 -ResourceGroupName $ResourceGroupName `
                 -ServerName $serverName
@@ -852,6 +863,10 @@ else {
                 -ServerName $AzSQLNameSource
 
     Write-Output "Check Az SQL Server configuration ..."
+    Write-Output $SubId
+    Write-Output $AzSQLRGSource
+    Write-Output $AzSQLAADAdmin
+    Write-Output
     $check += CheckAzSQLServer `
                 -SubId $SubId `
                 -ResourceGroupName $AzSQLRGSource `
