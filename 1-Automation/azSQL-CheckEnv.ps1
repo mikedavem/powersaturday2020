@@ -84,7 +84,7 @@ Function CheckAzSQLServerFirewall{
 
     Get-AzSqlServerFirewallRule -ResourceGroupName $ResourceGroupName -ServerName $ServerName | ForEach-Object {
         If ($_.FirewallRuleName -notin $Compliant_rules){
-            $Check += "Server Firewall rule should only contains Ips - Found  $($_.FirewallRuleName) - [$($_.StartIpAddress) - $($_.EndIpAddress)] `n"
+            $Check += "Server Firewall rule should only contains compliant IPs - Found  $($_.FirewallRuleName) - [$($_.StartIpAddress) - $($_.EndIpAddress)] `n"
         }
     }
 
@@ -230,7 +230,7 @@ Function CheckAzSQLServerAudit{
         }
 
         IF ([String]::IsNullOrEmpty($Audit.WorkspaceResourceId)){
-            $check += "Server audit target for Server $serverName should be $omsIdShort - Found empty value `n"
+            $check += "Server audit target for Server $serverName should be configured - Found empty value `n"
         }
         Else{
             If ($Audit.WorkspaceResourceId -ne $omsId){
@@ -619,7 +619,7 @@ Function CheckAzOrphanAlerts{
     Else{
         $DBs = Get-AzSqlDatabase `
                 -ResourceGroupName $ResourceGroupName `
-                -ServerName $ServerName | Select-Object DatabaseName
+                -ServerName $ServerName | Where-Object { $_.DatabaseName -ne "master" } | Select-Object DatabaseName
 
         $alerts = Get-AzActivityLogAlert -ResourceGroupName $ResourceGroupName | Where-Object { $_.Name -notlike '*-Administrative-ops'} | Select-Object Name
         $pattern = "(?<=-DB-)(.*)(?=-)"
@@ -863,10 +863,6 @@ else {
                 -ServerName $AzSQLNameSource
 
     Write-Output "Check Az SQL Server configuration ..."
-    Write-Output $SubId
-    Write-Output $AzSQLRGSource
-    Write-Output $AzSQLAADAdmin
-    Write-Output
     $check += CheckAzSQLServer `
                 -SubId $SubId `
                 -ResourceGroupName $AzSQLRGSource `
@@ -886,10 +882,6 @@ else {
                 -ResourceGroupName $AzSQLRGSource `
                 -ServerName $AzSQLNameSource
 
-    Write-Output "Check Az SQL Server audits ..."
-    Write-Output "Oms Id: $omsId"
-
-
     Write-Output "Check Az Database audits ..."
     $check += CheckAzSQLDBAudit `
                 -SubId $SubId `
@@ -903,10 +895,11 @@ else {
                 -ServerName $AzSQLNameSource
 
     If ($check){
-        $Subject = "$ResourceName - Incompliant items found"
+        $Subject = "$AzSQLRGSource - Incompliant items found"
         $body = $check
     }
 
+    Write-Output "==============================================================="
     Write-Output $Subject
     Write-Output $body
 
