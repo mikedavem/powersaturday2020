@@ -638,8 +638,8 @@ Function CheckAzOrphanAlerts{
 
         # DBs with missing alerts
         Foreach ($DB in $DBs){
-            If ($PSItem.DatabaseName -notin $alertsDBs){
-                $Check += "DB: $($PSItem.DatabaseName)  found with no alerts `n"
+            If ($DB.DatabaseName -notin $alertsDBs){
+                $Check += "DB: $($DB.DatabaseName)  found with no alerts `n"
             }
         }
     }
@@ -689,7 +689,7 @@ if ($WebhookData)
         $status = $Essentials.monitorCondition
 
 
-        if ($status -eq "Succeeded")
+        if ($status -eq "Succeeded" -or $status -eq "Fired")
         {
             # ($status -eq "Activated") -or ($status -eq "Fired") -or ($status -eq "Started"))
             $alertTargetIdArray = (($Essentials.alertTargetIds)[0]).Split("/")
