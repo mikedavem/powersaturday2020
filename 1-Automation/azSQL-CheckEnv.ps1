@@ -626,18 +626,18 @@ Function CheckAzOrphanAlerts{
         $alertsDBs = @()
 
         #Orphan alerts
-        ($alerts).ForEach{
-            $DB = [regex]::Match($PSItem.Name,$pattern).Groups[1].Value
+        Foreach ($alert in $alerts){
+            $DB = [regex]::Match($alert.Name,$pattern).Groups[1].Value
 
             $alertsDBs += $DB
 
             If ($DB -notin $DBs.DatabaseName){
-                $Check += "Orphan alerts found $($PsItem.Name) `n"
+                $Check += "Orphan alerts found $($alert.Name) `n"
             }
         }
 
         # DBs with missing alerts
-        ($DBs).Foreach{
+        Foreach ($DB in $DBs){
             If ($PSItem.DatabaseName -notin $alertsDBs){
                 $Check += "DB: $($PSItem.DatabaseName)  found with no alerts `n"
             }
